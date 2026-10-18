@@ -1,0 +1,8 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtempSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
+import {Accounts,normalizeUsername,sessionCookie} from './accounts.mjs';
+test('username workspaces isolate data, task ownership and survive restart',()=>{const directory=mkdtempSync(path.join(tmpdir(),'yunying-accounts-'));const a=new Accounts(directory),alice=a.login('Alice'),bob=a.login('小云');assert.equal(normalizeUsername(' ALICE '),'alice');const cookie=sessionCookie(alice.token);assert.equal(a.user(cookie).id,alice.user.id);assert.equal(a.user('yunying_session='+alice.token+'tampered'),null);a.put(alice.user,'yunying-drafts',JSON.stringify({video:{prompt:'private draft'}}),0);assert.equal(Object.keys(a.data(bob.user)).length,0);assert.throws(()=>a.put(alice.user,'yunying-drafts','{}',0),/其他页面/);a.rememberTask(alice.user,'task1');assert.equal(a.ownsTask(bob.user,'task1'),false);assert.equal(a.ownsTask(alice.user,'task1'),true);const restarted=new Accounts(directory);assert.equal(restarted.user(cookie).id,alice.user.id);assert.match(restarted.data(alice.user)['yunying-drafts'].value,/private draft/);assert.equal(restarted.login('alice').user.id,alice.user.id)});
+test('invalid usernames and unsupported storage keys are rejected',()=>{const a=new Accounts(mkdtempSync(path.join(tmpdir(),'yunying-accounts-')));assert.throws(()=>a.login('a'));assert.throws(()=>a.login('../other'));const u=a.login('valid-user').user;assert.throws(()=>a.put(u,'arbitrary-file','{}',0));assert.throws(()=>a.put(u,'yunying-works','invalid JSON',0))});

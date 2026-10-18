@@ -1,0 +1,11 @@
+云映云端部署说明
+
+云端前端位于 public/studio；入口 app/page.tsx 跳转到该工作台。
+云端 API 位于 build/creation-api.mjs，由 build/sites-worker.ts 处理 /api/*。
+密钥 CREDIT_MEDIA_API_KEY 通过 Sites 运行时 secret 注入，源码内不含密钥。
+可选音乐查询变量 SUNO_STATE_PATH 仍需平台 GET 查询文档。
+
+验证：node --test cloud-api.test.mjs
+构建：遵循 Sites 技能，使用 build-site.mjs。
+本机旧版 server.mjs / start.ps1 保留用于本地运行，不参与云端执行。
+作品历史保存在访问者浏览器；远程媒体地址可能过期。
